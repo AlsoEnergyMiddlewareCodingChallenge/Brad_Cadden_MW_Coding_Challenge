@@ -1,0 +1,11 @@
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\bin\Debug\netcoreapp3.0\ConsoleApp.exe
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\bin\Debug\netcoreapp3.0\ConsoleApp.deps.json
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\bin\Debug\netcoreapp3.0\ConsoleApp.runtimeconfig.json
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\bin\Debug\netcoreapp3.0\ConsoleApp.runtimeconfig.dev.json
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\bin\Debug\netcoreapp3.0\ConsoleApp.dll
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\bin\Debug\netcoreapp3.0\ConsoleApp.pdb
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\obj\Debug\netcoreapp3.0\ConsoleApp.csprojAssemblyReference.cache
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\obj\Debug\netcoreapp3.0\ConsoleApp.AssemblyInfoInputs.cache
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\obj\Debug\netcoreapp3.0\ConsoleApp.AssemblyInfo.cs
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\obj\Debug\netcoreapp3.0\ConsoleApp.dll
+C:\git\MiddlewareCodingChallange\ConsoleApp\ConsoleApp\obj\Debug\netcoreapp3.0\ConsoleApp.pdb
