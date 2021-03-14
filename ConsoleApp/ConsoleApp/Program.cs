@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
-//using System.Text.RegularExpressions;
 using System.Linq;
 using System.Threading;
+using System.Diagnostics;
 
 namespace ConsoleApp
 {
     class Program
     {
-        static void Main(string[] args)
+        
+        static void Main()
         {
             //Sum even numbers & print to console
             Console.WriteLine("The total sum of even numbers is " + SumNumbers());
@@ -18,8 +18,58 @@ namespace ConsoleApp
             Console.WriteLine(GETRequest());
 
             //Print numbers in list to console
-            Console.WriteLine(PrintList());
+            int[] inputInt = { 1, 2, 3, 4, 5 };
+            
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
 
+            Thread t1 = new Thread(
+                () => Thread1(stopWatch, inputInt))
+            {
+                Name = "t1"
+            };
+            
+            Thread t2 = new Thread(
+                () => Thread2(stopWatch, inputInt))
+                {
+                Name = "t2"
+                };
+
+            t1.Start();
+            t2.Start();
+
+            t1.Join();
+            t2.Join();
+        }
+
+        public static int SumNumbers()
+        {
+            int sumNumbers = 0;
+            bool flag = true;
+            while (flag)
+            {
+                try
+                {
+                    Console.WriteLine("Please provide a set of integers separated by commas.");
+                    string userInput = Console.ReadLine();
+                    var numbers = userInput.Split(',')?.Select(Int32.Parse).ToList();
+
+                    foreach (var number in numbers)
+                    {
+                        if (number % 2 == 0)
+                        {
+                            sumNumbers += number;
+                        }
+                    }
+                    flag = false;
+                }
+                catch
+                {
+                    Console.WriteLine("Please verify all items are numbers and separated by a comma");
+                    flag = true;
+                }
+            }
+            return sumNumbers;
         }
 
         public static string GETRequest()
@@ -39,39 +89,32 @@ namespace ConsoleApp
             return result;
         }
 
-        public static int SumNumbers()
+        public static void Thread1(Stopwatch stopWatch, int[] inputInt)
         {
-            int sumNumbers = 0;
-            bool flag = true;
-            while(flag)
-            {
-                try
-                {
-                    Console.WriteLine("Please provide a set of integers separated by commas.");
-                    string userInput = Console.ReadLine();
-                    var numbers = userInput.Split(',')?.Select(Int32.Parse).ToList();
+            int delay = 500;
 
-                    foreach (var number in numbers)
-                    {
-                        if (number % 2 == 0)
-                        {
-                            sumNumbers = sumNumbers + number;
-                        }
-                    }
-                    flag = false;
-                }
-                catch
+            for (int i=0; i<inputInt.Length; i++)
+            {
+                if (i != 0)
                 {
-                    Console.WriteLine("Please verify all items are numbers and separated by a comma");
-                    flag = true;
+                    Thread.Sleep(delay - (Convert.ToInt32(stopWatch.ElapsedMilliseconds) % delay));
                 }
+                //Console.WriteLine(Thread.CurrentThread.Name+": "+inputInt[i] + ": Time elapsed: {0}", stopWatch.ElapsedMilliseconds);
+                Console.WriteLine(Thread.CurrentThread.Name + ": " + inputInt[i]);
             }
-            return sumNumbers;
         }
-        public static string PrintList()
+        public static void Thread2(Stopwatch stopWatch, int[] inputInt)
         {
-            Thread.Sleep(5);
-            Thread.Sleep(10);
+            int delay = 1000;
+
+            for (int i = 0; i < inputInt.Length; i++)
+            {
+                if (i != 0) {
+                    Thread.Sleep(delay - (Convert.ToInt32(stopWatch.ElapsedMilliseconds) % delay));
+                }
+                //Console.WriteLine(Thread.CurrentThread.Name + ": " + inputInt[i] + ": Time elapsed: {0}", stopWatch.ElapsedMilliseconds);
+                Console.WriteLine(Thread.CurrentThread.Name + ": " + inputInt[i]); 
+            }
         }
     }
 }
