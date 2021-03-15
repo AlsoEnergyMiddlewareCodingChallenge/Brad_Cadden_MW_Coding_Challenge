@@ -1,0 +1,9 @@
+CREATE  TABLE server_response_log(
+	pk INT NOT NULL IDENTITY (1, 1) PRIMARY  KEY,
+	StartTimeUTC DATETIME NOT NULL,
+	EndTimeUTC DATETIME NOT NULL,
+	HTTPStatusCode INT,
+	DataString VARCHAR(MAX),
+	Status INT NOT NULL,
+	StatusString VARCHAR(MAX)
+);
