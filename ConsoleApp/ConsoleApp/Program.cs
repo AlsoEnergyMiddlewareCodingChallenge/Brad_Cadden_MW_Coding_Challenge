@@ -133,9 +133,6 @@ namespace ConsoleApp
 
         public static void GetWebAppTime()
         {
-
-            
-
             WebClient webClient = new WebClient();
             //webClient.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
 
@@ -144,10 +141,11 @@ namespace ConsoleApp
                 //Open WebApplication.sln in VS. Select the Solution Explorer tab and open Properties.
                 //Select Web from the left tab and update the localhost with your Project URL below
 
-
             string localHost = "https://localhost:44342/";
             Console.WriteLine(webClient.DownloadString(localHost + "HttpHandler.aspx"));
-
+            
+            //Simulate 500 error
+            Console.WriteLine(webClient.DownloadString(localHost + "HttpHandler.aspx?simulate500=Yes"));
         }
     }
 }
