@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Diagnostics;
 
-using System.IO;
+//used for accessing Azure SQL Server
+//In NuGet Package Manager, select the Browse tab, then search, select, and install Microsoft.Data.SqlClient.
+using Microsoft.Data.SqlClient;
 
 namespace ConsoleApp
 {
@@ -14,16 +16,19 @@ namespace ConsoleApp
         static void Main()
         {
             //Sum even numbers & print to console
-            //Console.WriteLine("The total sum of even numbers is " + SumNumbers());
+            Console.WriteLine("The total sum of even numbers is " + SumNumbers());
 
             //Dump a given URL into console
-            //Console.WriteLine(GETRequest());
+            Console.WriteLine(GETRequest());
 
             //Print numbers in list to console using 2 threads with a 500ms or 1000ms delay between print
-            //ThreadHandler();
+            ThreadHandler();
 
             //Ensure the Web  App is running prior running this.
             GetWebAppTime();
+
+            //Check DB Connection
+            //Connection();
 
         }
 
@@ -146,6 +151,45 @@ namespace ConsoleApp
             
             //Simulate 500 error
             Console.WriteLine(webClient.DownloadString(localHost + "HttpHandler.aspx?simulate500=Yes"));
+        }
+
+        public static void Connection()
+        {
+            try
+            {
+                SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+                builder.DataSource = "also-energy-middleware-coding-challenge.database.windows.net";
+                builder.UserID = "AlsoEnergy";
+                builder.Password = "ae_code_challenge";
+                
+                //Currently, erroring out on the DB name.  Will need to resolve, but connection successful, otherwise.
+                //builder.InitialCatalog = "ae_code_challenge";
+
+                using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
+                {
+                    Console.WriteLine("\nQuery data example:");
+                    Console.WriteLine("=========================================\n");
+
+                    String sql = "SELECT pk, StartTimeUTC, EndTimeUTC, HTTPStatusCode, DataString" +
+                        "Status,  StatusString FROM server_response_log";
+
+                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Console.WriteLine("{0} {1}", reader.GetString(0), reader.GetString(1));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
     }
 }
