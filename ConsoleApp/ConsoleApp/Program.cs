@@ -20,22 +20,23 @@ namespace ConsoleApp
             //Scenario 1 - 200 - returns everything
             //Scenario 2 - 500 - return sum even, dumps URL, and thread handling but errors 
             //Scenario 3 - timeout
-            int scenario = 2;
+            int scenario = 1;
 
             //Sum even numbers & print to console
-            //Console.WriteLine("The total sum of even numbers is " + SumNumbers());
+            Console.WriteLine("The total sum of even numbers is " + SumNumbers());
 
             //Dump a given URL into console
-            //Console.WriteLine(GETRequest());
+            Console.WriteLine(GETRequest());
 
             //Print numbers in list to console using 2 threads with a 500ms or 1000ms delay between print
-            //ThreadHandler();
+            ThreadHandler();
 
             //Ensure the Web  App is running prior running this.
-            (DateTime startTimeUTC, DateTime endTimeUTC, int httpStatusCode, string dataString, int status, string statusString) = GetWebAppTime(scenario);
+            //(DateTime startTimeUTC, DateTime endTimeUTC, int httpStatusCode, string dataString, int status, string statusString) = GetWebAppTime(scenario);
+            GetWebAppTime(scenario);
 
             //Check DB Connection
-            SQLInsert(startTimeUTC, endTimeUTC, httpStatusCode, dataString, status, statusString);
+            //SQLInsert(startTimeUTC, endTimeUTC, httpStatusCode, dataString, status, statusString);
 
         }
 
@@ -180,35 +181,61 @@ namespace ConsoleApp
                     endTimeUTC = DateTime.UtcNow; 
                     dataString = webClient.DownloadString(url);
                     startTimeUTC = DateTime.Parse(dataString);
+                    SQLInsert(startTimeUTC, endTimeUTC, httpStatusCode, dataString, status, statusString);
                     break;
 
                 case (2):
                     status = 2;
                     url = localHost + "HttpHandler.aspx?simulate500=Yes";
-                    
-                    HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(url);
-                    HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
-                    statusString = myHttpWebResponse.StatusDescription;
-                    httpStatusCode = (int)myHttpWebResponse.StatusCode;
-                    endTimeUTC = DateTime.UtcNow;
-                    dataString = webClient.DownloadString(url);
-                    startTimeUTC = DateTime.Parse(dataString);
+
+                    try
+                    {
+                        HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+                        HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
+                    }
+                    catch
+                    {
+                        //Considered adding better error handling, but it appears that it will error out regardless, whether at console app level or database level.
+                        //In a normal situation, I'd pursue a better option to capture this. However, due to the dates' not null requirments of the DB,
+                        //it cannot allow capturing this activity even in a partial sense.
+                        status = 2;
+                        httpStatusCode = 500;
+                        statusString = "Simulated 500 Error";
+                        dataString = "Task failed succesfully";
+                        Console.WriteLine(httpStatusCode.ToString() + " - " + statusString + " - " + dataString + " - Status: " + status);
+                    }
                     break;
 
                 case (3):
-                    status = -999;
+                    try
+                    {
+                        url = localHost + "HttpHandler.aspx";
+
+                        HttpWebRequest myHttpWebRequest2 = (HttpWebRequest)WebRequest.Create(url);
+
+                        //Set timeout to 1ms to ensure that a timeout is guaranteed.
+                        myHttpWebRequest2.Timeout = 1;
+                        HttpWebResponse myHttpWebResponse2 = (HttpWebResponse)myHttpWebRequest2.GetResponse();
+                        Console.WriteLine("Timeout failed");
+
+                    }
+                    catch
+                    {
+                        httpStatusCode = 408;
+                        status = 2;
+                        statusString = "Timeout";
+                        dataString = "Task failed succesfully";
+                        Console.WriteLine(httpStatusCode.ToString() + " - " + statusString + " - " + dataString + " - Status: " + status);
+                    }
                     break;
 
                 default:
-                    status = 2;
+                    Console.WriteLine("A scenario of 1-3 was not selected");
                     break;
             }
-
-            Console.WriteLine(dataString);
             
             var timeStatus = Tuple.Create(startTimeUTC, endTimeUTC, httpStatusCode, dataString, status, statusString);
             return timeStatus;
-
         }
 
         public static void SQLInsert(DateTime startTimeUTC, DateTime endTimeUTC, int httpStatusCode, string dataString, int status, string statusString)
