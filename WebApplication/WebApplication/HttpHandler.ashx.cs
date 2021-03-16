@@ -17,10 +17,12 @@ namespace WebApplication
             if (simulate500 == "Yes")
             {
                 context.Response.StatusCode = 500;
+                context.Response.StatusDescription = "Task failed successfully";
             }
 
             context.Response.ContentType = "text/plain";
             context.Response.Write(DateTime.UtcNow.ToString(@"MM\/dd\/yyyy HH:mm"));
+            context.Response.StatusDescription = "Task completed successfully";
         }
 
         public bool IsReusable

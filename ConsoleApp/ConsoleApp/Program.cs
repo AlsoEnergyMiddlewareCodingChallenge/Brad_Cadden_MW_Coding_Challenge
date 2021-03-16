@@ -17,6 +17,11 @@ namespace ConsoleApp
         
         static void Main()
         {
+            //Scenario 1 - 200 - returns everything
+            //Scenario 2 - 500 - return sum even, dumps URL, and thread handling but errors 
+            //Scenario 3 - timeout
+            int scenario = 2;
+
             //Sum even numbers & print to console
             //Console.WriteLine("The total sum of even numbers is " + SumNumbers());
 
@@ -27,14 +32,10 @@ namespace ConsoleApp
             //ThreadHandler();
 
             //Ensure the Web  App is running prior running this.
-            (DateTime startTimeUTC, DateTime endTimeUTC) = GetWebAppTime();
+            (DateTime startTimeUTC, DateTime endTimeUTC, int httpStatusCode, string dataString, int status, string statusString) = GetWebAppTime(scenario);
 
             //Check DB Connection
-            int httpStatusCode = 500;
-            string dataString = "Test dS";
-            int status = 200;
-            string statusString = "test sS";
-            SQLConnection(startTimeUTC, endTimeUTC, httpStatusCode, dataString, status, statusString);
+            SQLInsert(startTimeUTC, endTimeUTC, httpStatusCode, dataString, status, statusString);
 
         }
 
@@ -142,29 +143,75 @@ namespace ConsoleApp
             }
         }
 
-        public static Tuple<DateTime,DateTime> GetWebAppTime()
+        public static Tuple<DateTime,DateTime,int,string,int,string> GetWebAppTime(int scenario)
         {
+            int httpStatusCode = 0;
+            string dataString = "";
+            string url = "";
+            string statusString="";
+            int status = 0;
+
+            //Forced to assign a value.
+            DateTime startTimeUTC = DateTime.UtcNow;
+            DateTime endTimeUTC = DateTime.UtcNow;
+
+
             WebClient webClient = new WebClient();
             //webClient.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
 
             //The Local host URL below should be static. However, if you have issues for 
             //use the instructions below:
-                //Open WebApplication.sln in VS. Select the Solution Explorer tab and open Properties.
-                //Select Web from the left tab and update the localhost with your Project URL below
-
+            //Open WebApplication.sln in VS. Select the Solution Explorer tab and open Properties.
+            //Select Web from the left tab and update the localhost with your Project URL below
+            
             string localHost = "https://localhost:44342/";
-            string response = webClient.DownloadString(localHost + "HttpHandler.aspx");
-            DateTime endTimeUTC = DateTime.UtcNow;
-            //string response500 = webClient.DownloadString(localHost + "HttpHandler.aspx?simulate500=Yes");
+            
 
-            Console.WriteLine(response);
-            DateTime startTimeUTC = DateTime.Parse(response);
-            var time = Tuple.Create(startTimeUTC, endTimeUTC);
-            return time;
+            switch (scenario)
+            {
+                case (1):
+                    status = 1;
+                    url = localHost + "HttpHandler.aspx";
+
+                    HttpWebRequest myHttpWebRequest1 = (HttpWebRequest)WebRequest.Create(url);
+                    HttpWebResponse myHttpWebResponse1 = (HttpWebResponse)myHttpWebRequest1.GetResponse();
+                    statusString = myHttpWebResponse1.StatusDescription;
+                    httpStatusCode = (int)myHttpWebResponse1.StatusCode;
+                    endTimeUTC = DateTime.UtcNow; 
+                    dataString = webClient.DownloadString(url);
+                    startTimeUTC = DateTime.Parse(dataString);
+                    break;
+
+                case (2):
+                    status = 2;
+                    url = localHost + "HttpHandler.aspx?simulate500=Yes";
+                    
+                    HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+                    HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
+                    statusString = myHttpWebResponse.StatusDescription;
+                    httpStatusCode = (int)myHttpWebResponse.StatusCode;
+                    endTimeUTC = DateTime.UtcNow;
+                    dataString = webClient.DownloadString(url);
+                    startTimeUTC = DateTime.Parse(dataString);
+                    break;
+
+                case (3):
+                    status = -999;
+                    break;
+
+                default:
+                    status = 2;
+                    break;
+            }
+
+            Console.WriteLine(dataString);
+            
+            var timeStatus = Tuple.Create(startTimeUTC, endTimeUTC, httpStatusCode, dataString, status, statusString);
+            return timeStatus;
 
         }
 
-        public static void SQLConnection(DateTime startTimeUTC, DateTime endTimeUTC, int httpStatusCode, string dataString, int status, string statusString)
+        public static void SQLInsert(DateTime startTimeUTC, DateTime endTimeUTC, int httpStatusCode, string dataString, int status, string statusString)
         {
             try
             {
