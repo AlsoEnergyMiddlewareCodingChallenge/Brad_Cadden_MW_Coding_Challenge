@@ -1,10 +1,12 @@
-﻿using System;
+﻿//Note, this code was tested on VS 2019 and has not been compatibility checked for previous VS versions.
+
+using System;
 using System.Net;
 using System.Linq;
 using System.Threading;
 using System.Diagnostics;
 
-//used for accessing Azure SQL Server
+//used for accessing Azure SQL Server. 
 //In NuGet Package Manager, select the Browse tab, then search, select, and install Microsoft.Data.SqlClient.
 using Microsoft.Data.SqlClient;
 
@@ -16,19 +18,23 @@ namespace ConsoleApp
         static void Main()
         {
             //Sum even numbers & print to console
-            Console.WriteLine("The total sum of even numbers is " + SumNumbers());
+            //Console.WriteLine("The total sum of even numbers is " + SumNumbers());
 
             //Dump a given URL into console
-            Console.WriteLine(GETRequest());
+            //Console.WriteLine(GETRequest());
 
             //Print numbers in list to console using 2 threads with a 500ms or 1000ms delay between print
-            ThreadHandler();
+            //ThreadHandler();
 
             //Ensure the Web  App is running prior running this.
-            GetWebAppTime();
+            (DateTime startTimeUTC, DateTime endTimeUTC) = GetWebAppTime();
 
             //Check DB Connection
-            //Connection();
+            int httpStatusCode = 500;
+            string dataString = "Test dS";
+            int status = 200;
+            string statusString = "test sS";
+            SQLConnection(startTimeUTC, endTimeUTC, httpStatusCode, dataString, status, statusString);
 
         }
 
@@ -136,7 +142,7 @@ namespace ConsoleApp
             }
         }
 
-        public static void GetWebAppTime()
+        public static Tuple<DateTime,DateTime> GetWebAppTime()
         {
             WebClient webClient = new WebClient();
             //webClient.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
@@ -147,44 +153,45 @@ namespace ConsoleApp
                 //Select Web from the left tab and update the localhost with your Project URL below
 
             string localHost = "https://localhost:44342/";
-            Console.WriteLine(webClient.DownloadString(localHost + "HttpHandler.aspx"));
-            
-            //Simulate 500 error
-            Console.WriteLine(webClient.DownloadString(localHost + "HttpHandler.aspx?simulate500=Yes"));
+            string response = webClient.DownloadString(localHost + "HttpHandler.aspx");
+            DateTime endTimeUTC = DateTime.UtcNow;
+            //string response500 = webClient.DownloadString(localHost + "HttpHandler.aspx?simulate500=Yes");
+
+            Console.WriteLine(response);
+            DateTime startTimeUTC = DateTime.Parse(response);
+            var time = Tuple.Create(startTimeUTC, endTimeUTC);
+            return time;
+
         }
 
-        public static void Connection()
+        public static void SQLConnection(DateTime startTimeUTC, DateTime endTimeUTC, int httpStatusCode, string dataString, int status, string statusString)
         {
             try
             {
+                //Please note, I don't normally store credentials in code... 
+                //For ease, transparency and thankfully a disposable account, I've decided to provide access.
                 SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
                 builder.DataSource = "also-energy-middleware-coding-challenge.database.windows.net";
                 builder.UserID = "AlsoEnergy";
-                builder.Password = "ae_code_challenge";
+                builder.Password = "x82A5b4X5hgP27m";
+                builder.InitialCatalog = "ae_code_challange";
+
+                using SqlConnection connection = new SqlConnection(builder.ConnectionString);
                 
-                //Currently, erroring out on the DB name.  Will need to resolve, but connection successful, otherwise.
-                //builder.InitialCatalog = "ae_code_challenge";
+                String sql = "INSERT INTO dbo.server_response_log VALUES(@StartTimeUTC, @EndTimeUTC, @HTTPStatusCode, @DataString, @Status, @StatusString);";
 
-                using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
-                {
-                    Console.WriteLine("\nQuery data example:");
-                    Console.WriteLine("=========================================\n");
+                SqlCommand command = new SqlCommand(sql, connection);
+                connection.Open();
 
-                    String sql = "SELECT pk, StartTimeUTC, EndTimeUTC, HTTPStatusCode, DataString" +
-                        "Status,  StatusString FROM server_response_log";
+                command.Parameters.Add(new SqlParameter("StartTimeUTC", startTimeUTC));
+                command.Parameters.Add(new SqlParameter("EndTimeUTC", endTimeUTC));
+                command.Parameters.Add(new SqlParameter("HTTPStatusCode", httpStatusCode));
+                command.Parameters.Add(new SqlParameter("DataString", dataString));
+                command.Parameters.Add(new SqlParameter("Status", status));
+                command.Parameters.Add(new SqlParameter("StatusString", statusString));
+                command.ExecuteNonQuery();
 
-                    using (SqlCommand command = new SqlCommand(sql, connection))
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                Console.WriteLine("{0} {1}", reader.GetString(0), reader.GetString(1));
-                            }
-                        }
-                    }
-                }
+                Console.WriteLine("New record has been added to the database");
             }
             catch (SqlException e)
             {

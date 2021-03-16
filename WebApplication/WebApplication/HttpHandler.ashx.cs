@@ -20,7 +20,7 @@ namespace WebApplication
             }
 
             context.Response.ContentType = "text/plain";
-            context.Response.Write(DateTime.UtcNow.ToString(@"MM\/dd\/yyyy h\:mm tt") + " UTC");
+            context.Response.Write(DateTime.UtcNow.ToString(@"MM\/dd\/yyyy HH:mm"));
         }
 
         public bool IsReusable
